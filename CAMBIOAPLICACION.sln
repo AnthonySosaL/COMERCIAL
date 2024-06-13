@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33530.505
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "CAMBIOAPLICACION", "CAMBIOAPLICACION\CAMBIOAPLICACION.pyproj", "{B8572E52-5FE7-43CB-B582-A2938DA1B0DC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B8572E52-5FE7-43CB-B582-A2938DA1B0DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8572E52-5FE7-43CB-B582-A2938DA1B0DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {69736AE9-1944-4E01-A0B9-7C88D3960A78}
+	EndGlobalSection
+EndGlobal
