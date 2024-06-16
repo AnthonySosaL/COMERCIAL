@@ -2,14 +2,15 @@
 import sys
 import os
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QLabel, QLineEdit, QComboBox, QVBoxLayout, QPushButton, QDateEdit, QMessageBox
+from PyQt5.QtWidgets import QLabel, QLineEdit, QComboBox, QVBoxLayout, QPushButton, QDateEdit, QMessageBox, QStackedWidget
 import cx_Oracle
 import datetime
 
 class ActualizarFactura(QtWidgets.QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, window_stack=None):
         super().__init__(parent)
         self.parent_widget = parent
+        self.window_stack = window_stack if window_stack is not None else []
         self.initUI()
 
     def initUI(self):
@@ -108,4 +109,16 @@ class ActualizarFactura(QtWidgets.QWidget):
             QMessageBox.critical(self, "Error de Conexión", f"No se pudo actualizar la factura: {error.message}")
 
     def volver_al_inicio(self):
-        self.parent_widget.setCurrentWidget(self.parent_widget.main_menu)
+        if self.window_stack:
+            ultima_ventana = self.window_stack.pop()
+            self.parent_widget.setCurrentWidget(ultima_ventana)
+        else:
+            self.parent_widget.setCurrentIndex(0)  # Asumiendo que la primera pantalla es el índice 0
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    stacked_widget = QStackedWidget()
+    actualizar_factura = ActualizarFactura(parent=stacked_widget)
+    stacked_widget.addWidget(actualizar_factura)
+    stacked_widget.show()
+    sys.exit(app.exec_())

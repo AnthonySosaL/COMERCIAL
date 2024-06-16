@@ -1,16 +1,16 @@
-# clientes.py
 # -*- coding: 1252 -*-
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QFileDialog, QMessageBox, QStackedWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QFileDialog, QMessageBox, QStackedWidget, QComboBox
 from PyQt5.QtGui import QPixmap, QIcon
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt, QSize, QDate
 import cx_Oracle
 import os
 import sys
 
 class Clientes(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, window_stack=None):
         super().__init__(parent)
         self.parent_widget = parent  # Guardar referencia al QStackedWidget
+        self.window_stack = window_stack if window_stack is not None else []
         self.initUI()
 
     def initUI(self):
@@ -41,17 +41,17 @@ class Clientes(QWidget):
 
         self.btn_crear_cliente = QPushButton("Crear Nuevo Cliente", self)
         self.btn_crear_cliente.clicked.connect(self.crear_nuevo_cliente)
-        self.btn_crear_cliente.setStyleSheet("background-color: #f8d7da; color: black; font: bold 12pt 'Arial';")
+        self.btn_crear_cliente.setStyleSheet("background-color: #001f3f; color: white; font: bold 12pt 'Arial';")
         botones_layout.addWidget(self.btn_crear_cliente)
 
         self.btn_mostrar_todos = QPushButton("Ver Clientes", self)
         self.btn_mostrar_todos.clicked.connect(self.cargar_clientes)
-        self.btn_mostrar_todos.setStyleSheet("background-color: #f8d7da; color: black; font: bold 12pt 'Arial';")
+        self.btn_mostrar_todos.setStyleSheet("background-color: #001f3f; color: white; font: bold 12pt 'Arial';")
         botones_layout.addWidget(self.btn_mostrar_todos)
 
         self.btn_buscar = QPushButton("Buscar", self)
         self.btn_buscar.clicked.connect(self.buscar_cliente)
-        self.btn_buscar.setStyleSheet("background-color: #f8d7da; color: black; font: bold 12pt 'Arial';")
+        self.btn_buscar.setStyleSheet("background-color: #001f3f; color: white; font: bold 12pt 'Arial';")
         botones_layout.addWidget(self.btn_buscar)
 
         self.search_entry = QLineEdit(self)
@@ -60,8 +60,8 @@ class Clientes(QWidget):
         botones_layout.addWidget(self.search_entry)
 
         self.btn_salir = QPushButton("Salir", self)
-        self.btn_salir.clicked.connect(self.volver_al_inicio)
-        self.btn_salir.setStyleSheet("background-color: #f8d7da; color: black; font: bold 12pt 'Arial';")
+        self.btn_salir.clicked.connect(self.volver_anterior)
+        self.btn_salir.setStyleSheet("background-color: #001f3f; color: white; font: bold 12pt 'Arial';")
         botones_layout.addWidget(self.btn_salir)
 
         # Ajustar la distribución de los botones
@@ -75,7 +75,7 @@ class Clientes(QWidget):
 
         # Tabla de clientes
         self.table = QTableWidget(self)
-        self.table.setColumnCount(13)
+        self.table.setColumnCount(12)
         self.table.setHorizontalHeaderLabels(["Imagen", "Código", "Nombre", "Identificación", "Dirección", "Teléfono", "Celular", "Email", "Tipo", "Estado", "Eliminar", "Editar"])
         self.table.setColumnWidth(0, 70)  # Imagen
         self.table.setColumnWidth(1, 80)  # Código
@@ -102,11 +102,12 @@ class Clientes(QWidget):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
-    def volver_al_inicio(self):
-        if self.parent_widget:
-            self.parent_widget.setCurrentIndex(0)  # Asumiendo que PrimeraPantalla es el primer widget añadido al QStackedWidget
+    def volver_anterior(self):
+        if self.window_stack:
+            last_window = self.window_stack.pop()
+            self.parent_widget.setCurrentWidget(last_window)
         else:
-            QMessageBox.critical(self, "Error", "No se puede volver al inicio porque el parent_widget no está configurado.")
+            QMessageBox.critical(self, "Error", "No se puede volver al inicio porque el window_stack no está configurado.")
 
     def cargar_clientes(self):
         self.table.setRowCount(0)
@@ -185,6 +186,13 @@ class Clientes(QWidget):
 
         layout = QVBoxLayout()
 
+        # Fondo para edit_window
+        background_label = QLabel(edit_window)
+        background_pixmap = QPixmap('C:/Users/antho/Downloads/fondo4.png')
+        background_label.setPixmap(background_pixmap)
+        background_label.setScaledContents(True)
+        background_label.setGeometry(0, 0, 400, 600)
+
         entry_bg = "#f0f0f0"
         label_fg = "#333333"
         entry_font = ("Arial", 12)
@@ -193,12 +201,13 @@ class Clientes(QWidget):
         form_layout = QVBoxLayout()
         form_items = {}
 
-        def add_form_item(label, initial_value=""):
+        def add_form_item(label, initial_value="", widget=None):
             lbl = QLabel(label, edit_window)
             lbl.setStyleSheet(f"color: {label_fg}; font: bold 12pt 'Arial';")
-            form_items[label] = QLineEdit(edit_window)
+            form_items[label] = widget if widget else QLineEdit(edit_window)
             form_items[label].setStyleSheet(f"background-color: {entry_bg}; font: 12pt 'Arial';")
-            form_items[label].setText(initial_value)
+            if isinstance(form_items[label], QLineEdit):
+                form_items[label].setText(str(initial_value))
             form_layout.addWidget(lbl)
             form_layout.addWidget(form_items[label])
 
@@ -209,7 +218,7 @@ class Clientes(QWidget):
         add_form_item("Teléfono", row_data[4] if row_data else "")
         add_form_item("Celular", row_data[5] if row_data else "")
         add_form_item("Email", row_data[6] if row_data else "")
-        add_form_item("CLI TIPO", row_data[7] if row_data else "")
+        add_form_item("Tipo", row_data[7] if row_data else "")
         add_form_item("Estado", row_data[8] if row_data else "")
 
         lbl_img = QLabel("Imagen:", edit_window)
@@ -218,7 +227,7 @@ class Clientes(QWidget):
         img_path.setStyleSheet(f"background-color: {entry_bg}; font: 12pt 'Arial';")
         img_path.setText(row_data[9] if row_data else "")
         btn_img = QPushButton("Seleccionar Imagen", edit_window)
-        btn_img.setStyleSheet("background-color: #4CAF50; color: white; font: bold 12pt 'Arial';")
+        btn_img.setStyleSheet("background-color: #001f3f; color: white; font: bold 12pt 'Arial';")
         btn_img.clicked.connect(lambda: self.seleccionar_imagen(img_path))
 
         form_layout.addWidget(lbl_img)
@@ -228,6 +237,11 @@ class Clientes(QWidget):
         layout.addLayout(form_layout)
 
         def guardar():
+            # Validaciones
+            if float(form_items["Teléfono"].text().strip()) < 0 or float(form_items["Celular"].text().strip()) < 0:
+                QMessageBox.critical(edit_window, "Error", "Los valores numéricos no pueden ser negativos.")
+                return
+
             nuevo_dato = (
                 form_items["Código"].text().strip(),
                 form_items["Nombre"].text().strip(),
@@ -236,7 +250,7 @@ class Clientes(QWidget):
                 form_items["Teléfono"].text().strip(),
                 form_items["Celular"].text().strip(),
                 form_items["Email"].text().strip(),
-                form_items["CLI TIPO"].text().strip(),
+                form_items["Tipo"].text().strip(),
                 form_items["Estado"].text().strip(),
                 img_path.text().strip() if img_path.text().strip() else 'path/to/default/image.png'
             )
@@ -250,7 +264,7 @@ class Clientes(QWidget):
             edit_window.close()
 
         btn_guardar = QPushButton("Guardar", edit_window)
-        btn_guardar.setStyleSheet("background-color: #4CAF50; color: white; font: bold 12pt 'Arial';")
+        btn_guardar.setStyleSheet("background-color: #001f3f; color: white; font: bold 12pt 'Arial';")
         btn_guardar.clicked.connect(guardar)
         layout.addWidget(btn_guardar)
 
@@ -322,6 +336,8 @@ class Clientes(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    main = Clientes()
-    main.show()
+    stacked_widget = QStackedWidget()
+    clientes = Clientes(parent=stacked_widget)
+    stacked_widget.addWidget(clientes)
+    stacked_widget.show()
     sys.exit(app.exec_())

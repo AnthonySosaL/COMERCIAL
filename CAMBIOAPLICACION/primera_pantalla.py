@@ -9,11 +9,13 @@ from main_menu import MainMenu  # Asegúrate de que el módulo main_menu esté en e
 from clientes import Clientes  # Importar el módulo clientes
 from proveedores import Proveedores  # Importar el módulo proveedores
 from empleados import Empleados  # Importar el módulo empleados
-
+from admin import AdminWindow  # Importar el módulo admin
+from administrarsys import AdministarDBA
 class PrimeraPantalla(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, window_stack=None):
         super().__init__(parent)
         self.parent_widget = parent  # Guardar referencia al QStackedWidget
+        self.window_stack = window_stack if window_stack is not None else []
         self.initUI()
 
     def initUI(self):
@@ -29,14 +31,14 @@ class PrimeraPantalla(QWidget):
         self.bg_label.lower()
 
         self.entry_username = QLineEdit(self)
-        self.entry_username.setPlaceholderText("cajero_ventas")
-        self.entry_username.setText("jefe_gestion_inventarios")
+        self.entry_username.setPlaceholderText("Usuario")
+        self.entry_username.setText("cajero_ventas")
         self.entry_username.setStyleSheet(self.get_entry_style())
         self.entry_username.setGeometry(535, 489, 222, 27)
 
         self.entry_password = QLineEdit(self)
-        self.entry_password.setPlaceholderText("ventas0602314387")
-        self.entry_password.setText("inventarios0602314387")
+        self.entry_password.setPlaceholderText("Constraseña")
+        self.entry_password.setText("ventas0602314387")
         self.entry_password.setEchoMode(QLineEdit.Password)
         self.entry_password.setStyleSheet(self.get_entry_style())
         self.entry_password.setGeometry(535, 524, 222, 27)
@@ -89,6 +91,9 @@ class PrimeraPantalla(QWidget):
             return
 
         if username.upper() == 'SYS':
+            if instancia != 'Módulo de Administración':
+                QMessageBox.critical(self, "Acceso Denegado", "El usuario SYS solo puede acceder al Módulo de Administración.")
+                return
             self.conectar_usuario_sys(username, password)
             return
 
@@ -129,28 +134,40 @@ class PrimeraPantalla(QWidget):
 
             # Navegar a la pantalla del módulo correspondiente
             if modulo == 'productos':
-                productos_widget = Productos(parent=self.parent_widget)
+                productos_widget = Productos(parent=self.parent_widget, window_stack=self.window_stack)
+                self.window_stack.append(self)
                 self.parent_widget.addWidget(productos_widget)
                 self.parent_widget.setCurrentWidget(productos_widget)
             elif modulo == 'main_menu':
-                main_menu_widget = MainMenu(parent=self.parent_widget)
+                main_menu_widget = MainMenu(parent=self.parent_widget, window_stack=self.window_stack)
+                self.window_stack.append(self)
                 self.parent_widget.addWidget(main_menu_widget)
                 self.parent_widget.setCurrentWidget(main_menu_widget)
             elif modulo == 'clientes':
-                clientes_widget = Clientes(parent=self.parent_widget)
+                clientes_widget = Clientes(parent=self.parent_widget, window_stack=self.window_stack)
+                self.window_stack.append(self)
                 self.parent_widget.addWidget(clientes_widget)
                 self.parent_widget.setCurrentWidget(clientes_widget)
             elif modulo == 'proveedores':
-                proveedores_widget = Proveedores(parent=self.parent_widget)
+                proveedores_widget = Proveedores(parent=self.parent_widget, window_stack=self.window_stack)
+                self.window_stack.append(self)
                 self.parent_widget.addWidget(proveedores_widget)
                 self.parent_widget.setCurrentWidget(proveedores_widget)
             elif modulo == 'empleados':
-                empleados_widget = Empleados(parent=self.parent_widget)
+                empleados_widget = Empleados(parent=self.parent_widget, window_stack=self.window_stack)
+                self.window_stack.append(self)
                 self.parent_widget.addWidget(empleados_widget)
                 self.parent_widget.setCurrentWidget(empleados_widget)
+            elif modulo == 'admin':
+                admin_widget = AdminWindow(parent=self.parent_widget, window_stack=self.window_stack)
+                self.window_stack.append(self)
+                self.parent_widget.addWidget(admin_widget)
+                self.parent_widget.setCurrentWidget(admin_widget)
             else:
                 # Lógica para otros módulos si existen
                 pass
+
+            QMessageBox.information(self, "Conexión Exitosa", f"Usuario '{username}' conectado exitosamente al módulo '{modulo}'.")
 
         except cx_Oracle.DatabaseError as e:
             error, = e.args
@@ -159,19 +176,22 @@ class PrimeraPantalla(QWidget):
             else:
                 QMessageBox.critical(self, "Error de Conexión", f"No se pudo conectar a la base de datos: {error.message}")
 
-
     def conectar_usuario_sys(self, username, password):
         try:
             dsn = cx_Oracle.makedsn("localhost", 1521, service_name="comercial")
             connection = cx_Oracle.connect(username, password, dsn, mode=cx_Oracle.SYSDBA)
-            
+
             # Almacenar las credenciales en variables de entorno
             os.environ['DB_USERNAME'] = username
             os.environ['DB_PASSWORD'] = password
 
             # Navegar a la pantalla del módulo de administración
-            # Asegúrate de manejar la navegación correctamente aquí si es necesario
-            pass
+            admin_widget = AdministarDBA(parent=self.parent_widget, window_stack=self.window_stack)
+            self.window_stack.append(self)
+            self.parent_widget.addWidget(admin_widget)
+            self.parent_widget.setCurrentWidget(admin_widget)
+
+            QMessageBox.information(self, "Conexión Exitosa", f"Usuario '{username}' conectado exitosamente al módulo de administración.")
 
         except cx_Oracle.DatabaseError as e:
             error, = e.args
@@ -226,7 +246,7 @@ class PrimeraPantalla(QWidget):
             return None
 
 if __name__ == "__main__":
-    from PyQt5.QtWidgets import QApplication
+    from PyQt5.QtWidgets import QApplication, QStackedWidget
     import sys
 
     app = QApplication(sys.argv)
