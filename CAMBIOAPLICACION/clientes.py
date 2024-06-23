@@ -238,8 +238,10 @@ class Clientes(QWidget):
 
         def guardar():
             # Validaciones
-            if float(form_items["Teléfono"].text().strip()) < 0 or float(form_items["Celular"].text().strip()) < 0:
-                QMessageBox.critical(edit_window, "Error", "Los valores numéricos no pueden ser negativos.")
+            telefono = form_items["Teléfono"].text().strip()
+            celular = form_items["Celular"].text().strip()
+            if not telefono or not celular:
+                QMessageBox.critical(edit_window, "Error", "Los campos de Teléfono y Celular no pueden estar vacíos.")
                 return
 
             nuevo_dato = (
@@ -247,8 +249,8 @@ class Clientes(QWidget):
                 form_items["Nombre"].text().strip(),
                 form_items["Identificación"].text().strip(),
                 form_items["Dirección"].text().strip(),
-                form_items["Teléfono"].text().strip(),
-                form_items["Celular"].text().strip(),
+                telefono,
+                celular,
                 form_items["Email"].text().strip(),
                 form_items["Tipo"].text().strip(),
                 form_items["Estado"].text().strip(),
@@ -285,8 +287,9 @@ class Clientes(QWidget):
                 dsn_tns = cx_Oracle.makedsn('localhost', '1521', service_name='comercial')
                 connection = cx_Oracle.connect(user=username, password=password, dsn=dsn_tns)
                 cursor = connection.cursor()
-                cursor.execute("DELETE FROM CLIENTES WHERE CLICODIGO = :1", (codigo,))
+                cursor.execute("UPDATE CLIENTES SET CLISTATUS = 'INA' WHERE TRIM(CLICODIGO) = :1", (codigo,))
                 connection.commit()
+
                 cursor.close()
                 connection.close()
                 self.cargar_clientes()

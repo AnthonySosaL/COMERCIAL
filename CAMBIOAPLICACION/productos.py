@@ -291,7 +291,7 @@ class Productos(QWidget):
                 dsn_tns = cx_Oracle.makedsn('localhost', '1521', service_name='comercial')
                 connection = cx_Oracle.connect(user=username, password=password, dsn=dsn_tns)
                 cursor = connection.cursor()
-                cursor.execute("DELETE FROM PRODUCTOS WHERE PROCODIGO = :1", (codigo,))
+                cursor.execute("UPDATE PRODUCTOS SET PROSTATUS = 'INA' WHERE TRIM(PROCODIGO) = :1", (codigo,))
                 connection.commit()
                 cursor.close()
                 connection.close()

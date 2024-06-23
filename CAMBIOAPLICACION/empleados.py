@@ -257,7 +257,7 @@ class Empleados(QWidget):
         add_form_item("Cuenta", row_data[12] if row_data else "")
 
         estado = QComboBox(edit_window)
-        estado.addItems(["ACT", "INA"])
+        estado.addItems(["ACT", "INA", "DES", "MRT"])
         if row_data and row_data[13]:
             estado.setCurrentText(row_data[13])
         add_form_item("Estado", widget=estado)
@@ -335,7 +335,7 @@ class Empleados(QWidget):
                 dsn_tns = cx_Oracle.makedsn('localhost', '1521', service_name='comercial')
                 connection = cx_Oracle.connect(user=username, password=password, dsn=dsn_tns)
                 cursor = connection.cursor()
-                cursor.execute("DELETE FROM EMPLEADOS WHERE EMPCODIGO = :1", (codigo,))
+                cursor.execute("UPDATE EMPLEADOS SET EMPSTATUS = 'INA' WHERE TRIM(EMPCODIGO) = :1", (codigo,))
                 connection.commit()
                 cursor.close()
                 connection.close()

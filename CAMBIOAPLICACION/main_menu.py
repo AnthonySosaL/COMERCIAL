@@ -1,5 +1,10 @@
 # -*- coding: 1252 -*-
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QMessageBox, QStackedWidget
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import Qt
+import sys
+
+# Importar las clases de los módulos
 from crearfactura import CrearFactura
 from actualizar_factura import ActualizarFactura
 
@@ -14,21 +19,36 @@ class MainMenu(QWidget):
         self.setWindowTitle("Gestión de Facturas")
         self.setFixedSize(1280, 790)
 
-        layout = QVBoxLayout()
+        # Fondo
+        self.background_label = QLabel(self)
+        self.background_pixmap = QPixmap('C:/Users/antho/Downloads/fondo4.png')  # Asegúrate de que la ruta sea correcta
+        self.background_label.setPixmap(self.background_pixmap)
+        self.background_label.setScaledContents(True)
+        self.background_label.setGeometry(0, 0, 1280, 790)
 
-        btn_create_invoice = QPushButton('Crear Factura', self)
-        btn_create_invoice.clicked.connect(self.create_invoice)
-        layout.addWidget(btn_create_invoice)
+        # Título
+        self.label_titulo = QLabel("Seleccione un módulo para administrar", self)
+        self.label_titulo.setStyleSheet("font: bold 16pt 'Arial'; color: #001f3f;")
+        self.label_titulo.setAlignment(Qt.AlignCenter)
+        self.label_titulo.setGeometry(340, 50, 600, 50)
 
-        btn_update_invoice_status = QPushButton('Actualizar Factura', self)
-        btn_update_invoice_status.clicked.connect(self.update_invoice_status)
-        layout.addWidget(btn_update_invoice_status)
+        # Contenedor de botones
+        btn_style = "background-color: #001f3f; color: white; font: bold 12pt 'Arial'; height: 50px; width: 200px;"
 
-        btn_volver_al_inicio = QPushButton('Salir', self)
-        btn_volver_al_inicio.clicked.connect(self.volver_al_inicio)
-        layout.addWidget(btn_volver_al_inicio)
+        self.btn_create_invoice = QPushButton("Crear Factura", self)
+        self.btn_create_invoice.setStyleSheet(btn_style)
+        self.btn_create_invoice.setGeometry(540, 150, 200, 50)
+        self.btn_create_invoice.clicked.connect(self.create_invoice)
 
-        self.setLayout(layout)
+        self.btn_update_invoice_status = QPushButton("Actualizar Factura", self)
+        self.btn_update_invoice_status.setStyleSheet(btn_style)
+        self.btn_update_invoice_status.setGeometry(540, 220, 200, 50)
+        self.btn_update_invoice_status.clicked.connect(self.update_invoice_status)
+
+        self.btn_volver_al_inicio = QPushButton("Salir", self)
+        self.btn_volver_al_inicio.setStyleSheet(btn_style)
+        self.btn_volver_al_inicio.setGeometry(540, 290, 200, 50)
+        self.btn_volver_al_inicio.clicked.connect(self.volver_al_inicio)
 
     def create_invoice(self):
         nueva_ventana = CrearFactura(self.parent_widget, self.window_stack)
@@ -51,7 +71,6 @@ class MainMenu(QWidget):
 
 if __name__ == "__main__":
     from PyQt5.QtWidgets import QApplication, QStackedWidget
-    import sys
 
     app = QApplication(sys.argv)
     stacked_widget = QStackedWidget()

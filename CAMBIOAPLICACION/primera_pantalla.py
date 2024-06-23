@@ -1,24 +1,31 @@
+# primera_pantalla.py
 # -*- coding: 1252 -*-
 from PyQt5.QtWidgets import QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox, QMessageBox, QStackedWidget
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtCore import Qt
 import cx_Oracle
 import os
-from productos import Productos  # Asegúrate de que el módulo productos esté en el mismo directorio
-from main_menu import MainMenu  # Asegúrate de que el módulo main_menu esté en el mismo directorio
-from clientes import Clientes  # Importar el módulo clientes
-from proveedores import Proveedores  # Importar el módulo proveedores
-from empleados import Empleados  # Importar el módulo empleados
-from admin import AdminWindow  # Importar el módulo admin
+from productos import Productos
+from main_menu import MainMenu
+from clientes import Clientes
+from proveedores import Proveedores
+from empleados import Empleados
+from admin import AdminWindow
 from administrarsys import AdministarDBA
+from ingresar_compras import IngresarCompras
+from ajustar_inventarios import AjustarInventarios
+from menu_nominas import MenuNominas
+from menu_ingresar_compras import MenuIngresarCompras  # Importar el módulo menu_ingresar_compras
+
 class PrimeraPantalla(QWidget):
     def __init__(self, parent=None, window_stack=None):
         super().__init__(parent)
-        self.parent_widget = parent  # Guardar referencia al QStackedWidget
+        self.parent_widget = parent
         self.window_stack = window_stack if window_stack is not None else []
         self.initUI()
 
     def initUI(self):
+        # (Configuración de la UI como antes)
         self.setWindowTitle("Inicio de Sesión")
         self.setFixedSize(1280, 790)
         self.setStyleSheet("background-color: #f2dede;")
@@ -32,13 +39,13 @@ class PrimeraPantalla(QWidget):
 
         self.entry_username = QLineEdit(self)
         self.entry_username.setPlaceholderText("Usuario")
-        self.entry_username.setText("cajero_ventas")
+        self.entry_username.setText("")
         self.entry_username.setStyleSheet(self.get_entry_style())
         self.entry_username.setGeometry(535, 489, 222, 27)
 
         self.entry_password = QLineEdit(self)
-        self.entry_password.setPlaceholderText("Constraseña")
-        self.entry_password.setText("ventas0602314387")
+        self.entry_password.setPlaceholderText("Contraseña")
+        self.entry_password.setText("")
         self.entry_password.setEchoMode(QLineEdit.Password)
         self.entry_password.setStyleSheet(self.get_entry_style())
         self.entry_password.setGeometry(535, 524, 222, 27)
@@ -56,7 +63,7 @@ class PrimeraPantalla(QWidget):
         self.instancia_var.addItems(self.instancia_opciones)
         self.instancia_var.setStyleSheet("background-color: #001f3f; color: white;")
         self.instancia_var.setGeometry(535, 559, 222, 27)
-        self.instancia_var.setCurrentIndex(0)
+        self.instancia_var.setCurrentIndex(4)
 
         self.btn_login = QPushButton("Log in", self)
         self.btn_login.setStyleSheet("background-color: #001f3f; color: white; font-size: 12pt;")
@@ -113,12 +120,30 @@ class PrimeraPantalla(QWidget):
             else:
                 QMessageBox.critical(self, "Acceso Denegado", "No tiene permisos suficientes para acceder.")
                 return
-        elif instancia == 'Módulo de Inventarios' and 'ROL_GESTION_INVENTARIOS' in roles:
-            self.conectar_usuario(username, password, roles, 'productos')
-        elif instancia == 'Módulo de Compras' and 'ROL_GESTION_COMPRAS' in roles:
-            self.conectar_usuario(username, password, roles, 'proveedores')
-        elif instancia == 'Módulo de Recursos Humanos' and 'ROL_GESTION_RRHH' in roles:
-            self.conectar_usuario(username, password, roles, 'empleados')
+        elif instancia == 'Módulo de Inventarios':
+            if 'ROL_GESTION_INVENTARIOS' in roles:
+                self.conectar_usuario(username, password, roles, 'productos')
+            elif 'ROL_GESTION_AJUSTES' in roles:
+                self.conectar_usuario(username, password, roles, 'ajustar_inventarios')
+            else:
+                QMessageBox.critical(self, "Acceso Denegado", "No tiene permisos suficientes para acceder.")
+                return
+        elif instancia == 'Módulo de Compras':
+            if 'ROL_GESTION_COMPRAS' in roles:
+                self.conectar_usuario(username, password, roles, 'proveedores')
+            elif 'ROL_GESTION_INGRESOS' in roles:
+                self.conectar_usuario(username, password, roles, 'menu_ingresar_compras')  # Cambiado a 'menu_ingresar_compras'
+            else:
+                QMessageBox.critical(self, "Acceso Denegado", "No tiene permisos suficientes para acceder.")
+                return
+        elif instancia == 'Módulo de Recursos Humanos':
+            if 'ROL_GESTION_RRHH' in roles:
+                self.conectar_usuario(username, password, roles, 'empleados')
+            elif 'ROL_GESTION_NOMINAS' in roles:
+                self.conectar_usuario(username, password, roles, 'menu_nominas')
+            else:
+                QMessageBox.critical(self, "Acceso Denegado", "No tiene permisos suficientes para acceder.")
+                return
         else:
             QMessageBox.critical(self, "Acceso Denegado", "No tiene permisos suficientes para acceder.")
             return
@@ -158,11 +183,26 @@ class PrimeraPantalla(QWidget):
                 self.window_stack.append(self)
                 self.parent_widget.addWidget(empleados_widget)
                 self.parent_widget.setCurrentWidget(empleados_widget)
+            elif modulo == 'menu_ingresar_compras':  # Cambiado a 'menu_ingresar_compras'
+                menu_ingresar_compras_widget = MenuIngresarCompras(parent=self.parent_widget, window_stack=self.window_stack)
+                self.window_stack.append(self)
+                self.parent_widget.addWidget(menu_ingresar_compras_widget)
+                self.parent_widget.setCurrentWidget(menu_ingresar_compras_widget)
             elif modulo == 'admin':
                 admin_widget = AdminWindow(parent=self.parent_widget, window_stack=self.window_stack)
                 self.window_stack.append(self)
                 self.parent_widget.addWidget(admin_widget)
                 self.parent_widget.setCurrentWidget(admin_widget)
+            elif modulo == 'ajustar_inventarios':
+                ajustar_inventarios_widget = AjustarInventarios(parent=self.parent_widget, window_stack=self.window_stack)
+                self.window_stack.append(self)
+                self.parent_widget.addWidget(ajustar_inventarios_widget)
+                self.parent_widget.setCurrentWidget(ajustar_inventarios_widget)
+            elif modulo == 'menu_nominas':
+                menu_nominas_widget = MenuNominas(parent=self.parent_widget, window_stack=self.window_stack)
+                self.window_stack.append(self)
+                self.parent_widget.addWidget(menu_nominas_widget)
+                self.parent_widget.setCurrentWidget(menu_nominas_widget)
             else:
                 # Lógica para otros módulos si existen
                 pass

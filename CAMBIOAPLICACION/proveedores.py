@@ -282,7 +282,7 @@ class Proveedores(QWidget):
                 dsn_tns = cx_Oracle.makedsn('localhost', '1521', service_name='comercial')
                 connection = cx_Oracle.connect(user=username, password=password, dsn=dsn_tns)
                 cursor = connection.cursor()
-                cursor.execute("DELETE FROM PROVEEDORES WHERE PRVCODIGO = :1", (codigo,))
+                cursor.execute("UPDATE PROVEEDORES SET PRVSTATUS = 'INA' WHERE TRIM(PRVCODIGO) = :1", (codigo,))
                 connection.commit()
                 cursor.close()
                 connection.close()

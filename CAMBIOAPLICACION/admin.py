@@ -9,7 +9,7 @@ from productos import Productos
 from clientes import Clientes
 from proveedores import Proveedores
 from empleados import Empleados
-
+from auditoria import Auditoria
 class AdminWindow(QWidget):
     def __init__(self, parent=None, window_stack=None):
         super().__init__(parent)
